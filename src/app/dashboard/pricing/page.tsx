@@ -22,7 +22,7 @@ const PricingPage = async () => {
       customer: subscriptionData?.User?.customerId as string,
       return_url:
         process.env.NODE_ENV === "production"
-          ? "https://blog-marshal.vercel.app/dashboard"
+          ? "https://saasential.vercel.app/dashboard"
           : "http://localhost:3000/dashboard",
     });
     return redirect(session.url);
