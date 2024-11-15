@@ -1,0 +1,109 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id           String  @id @default(uuid())
+  email        String  @unique
+  firstName    String
+  lastName     String
+  password     String
+  profileImage String?
+  customerId   String? @unique
+
+  createdAt DateTime @default(now())
+
+  Site  Site[]
+  posts Post[]
+
+  Subscription Subscription?
+  Account      Account[]
+  Session      Session[]
+}
+
+model Site {
+  id           String   @id @default(uuid())
+  name         String
+  description  String
+  subdirectory String   @unique
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  imageUrl String?
+  User     User?   @relation(fields: [userId], references: [id])
+  userId   String?
+  posts    Post[]
+}
+
+model Post {
+  id String @id @default(uuid())
+
+  title            String
+  articleContent   Json
+  smallDescription String
+  image            String
+  slug             String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+  User      User?    @relation(fields: [userId], references: [id])
+  userId    String?
+  Site      Site?    @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  siteId    String?
+}
+
+model Subscription {
+  stripeSubscriptionId String  @id @default(uuid())
+  interval             String
+  status               String
+  planId               String
+  currentPeriodStart   Int
+  currentPeriodEnd     Int
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  User   User?   @relation(fields: [userId], references: [id])
+  userId String? @unique
+}
+
+model Account {
+  id                String  @id @default(uuid())
+  userId            String? @unique
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? // OAuth refresh token (if applicable)
+  access_token      String? // OAuth access token (if applicable)
+  expires_at        Int? // OAuth token expiry (if applicable)
+  token_type        String? // OAuth token type (if applicable)
+  scope             String? // OAuth token scope (if applicable)
+  id_token          String? // ID token (if applicable)
+  session_state     String? // Session state (if applicable)
+
+  User User? @relation(fields: [userId], references: [id])
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  sessionToken String   @unique
+  userId       String?  @unique
+  expires      DateTime
+
+  User User? @relation(fields: [userId], references: [id])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
